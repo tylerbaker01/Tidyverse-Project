@@ -1,0 +1,48 @@
+---
+title: "Tidyverse Project DATA 607"
+author: "Tyler Baker"
+date: "10/24/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+I want to explain how to read in two csv and combine them the Tidy way. 
+
+We first must find raw data.
+For this example I was able to find two datasets. One is ticket prices for each NFL team, and the other is the popularity for each NFL team.
+
+```{r}
+nfl_ticket_prices_df<- read_csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/nfl-ticket-prices/national-average.csv")
+
+nfl_popular_teams_df <- read_csv("https://raw.githubusercontent.com/fivethirtyeight/data/master/nfl-fandom/NFL_fandom_data-surveymonkey.csv")
+```
+
+Okay so now that we have uploaded the two datasets we must examine them. We  want to combine the datasets by their team name. 
+
+To do this we must first cutoff the word `Tickets` from the ticket price dataframe.
+
+```{r}
+nfl_ticket_prices_df$Genre<- str_replace_all(nfl_ticket_prices_df$Genre, ".Tickets", "")
+```
+
+Then we must change the columnnames.
+
+```{r}
+colnames(nfl_ticket_prices_df) <- c("team", "ticket_price")
+keep_columns<- c(1, 2, 8, 14, 20, 21, 22, 23)
+nfl_popular_teams_df<- nfl_popular_teams_df[keep_columns]
+colnames(nfl_popular_teams_df) <- c("team", "total_respondents", "total_democrat", "total_independent", "total_republican", "republican_percentage", "democrat_percentage", "independent_percentage")
+nfl_popular_teams_df <- nfl_popular_teams_df[-c(1, 34),]
+```
+
+Now we can combine the two dataframes
+
+```{r}
+nfl_team_stats <- merge(nfl_popular_teams_df, nfl_ticket_prices_df, by = 'team')
+```
+
+That is how we can read in multiple csv's and combine them based on a shared column.
